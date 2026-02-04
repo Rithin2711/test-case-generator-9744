@@ -119,6 +119,9 @@
 .loginForm {
   display: flex;
   flex-direction: column;
+
+  /* If any parent container applies centered text, ensure form content is left-aligned. */
+  text-align: left;
 }
 
 .fieldLabel {
@@ -126,6 +129,11 @@
   font-weight: 600;
   color: #374151;
   margin: 12px 0 6px;
+
+  /* Explicitly left-align the label itself regardless of parent styles. */
+  display: block;
+  width: 100%;
+  text-align: left;
 }
 
 .textField {
