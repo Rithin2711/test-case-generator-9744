@@ -1,0 +1,256 @@
+:root {
+  --login-gradient-a: rgb(3, 78, 161);
+  --login-gradient-b: rgb(197, 22, 140);
+
+  --ocean-primary: #2563eb;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+}
+
+/* Page layout */
+.loginPage {
+  min-height: 100vh;
+  background: #f9fafb;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Gradient header */
+.loginHeader {
+  background: linear-gradient(90deg, var(--login-gradient-a), var(--login-gradient-b));
+  padding: 22px 20px;
+}
+
+.loginHeaderInner {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brandGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.appLogo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  user-select: none;
+  flex: 0 0 auto;
+}
+
+.brandText {
+  color: #ffffff;
+  min-width: 0;
+}
+
+.brandTitle {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brandSubtitle {
+  margin-top: 2px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.companyGroup {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.companyLogo {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+}
+
+/* Content + card */
+.loginContent {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 28px 16px 48px;
+}
+
+.loginCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
+}
+
+.loginTitle {
+  margin: 0 0 18px;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin: 12px 0 6px;
+}
+
+.textField {
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 0 12px;
+  font-size: 14px;
+  outline: none;
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+  background: #ffffff;
+}
+
+.textField:focus {
+  border-color: rgba(37, 99, 235, 0.6);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+}
+
+.primaryButton {
+  margin-top: 16px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: var(--ocean-primary);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease, box-shadow 160ms ease;
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.18);
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+}
+
+.primaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.googleButton {
+  height: 44px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  color: #111827;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: box-shadow 160ms ease, transform 120ms ease;
+}
+
+.googleButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
+}
+
+.googleMark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ea4335, #4285f4);
+}
+
+.signupRow {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.signupLink {
+  color: var(--ocean-primary);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.signupLink:hover {
+  text-decoration: underline;
+}
+
+/* Responsive refinements */
+@media (max-width: 520px) {
+  .loginHeaderInner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .companyGroup {
+    justify-content: flex-start;
+  }
+
+  .loginCard {
+    padding: 24px;
+  }
+
+  .loginTitle {
+    font-size: 22px;
+  }
+}
