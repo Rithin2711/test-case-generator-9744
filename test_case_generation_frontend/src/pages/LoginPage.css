@@ -137,6 +137,9 @@
   outline: none;
   transition: box-shadow 160ms ease, border-color 160ms ease;
   background: #ffffff;
+
+  /* Ensure input text is left-aligned (not centered). */
+  text-align: left;
 }
 
 .textField:focus {
