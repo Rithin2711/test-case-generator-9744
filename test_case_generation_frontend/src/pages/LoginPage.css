@@ -24,8 +24,8 @@
 }
 
 .loginHeaderInner {
-  max-width: 1040px;
-  margin: 0 auto;
+  /* Full-width inner container so brandGroup can sit further left */
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
