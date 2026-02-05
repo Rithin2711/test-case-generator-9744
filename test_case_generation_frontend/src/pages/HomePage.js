@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+// Uses REACT_APP_API_BASE (preferred) for /extract; keeps enhanced diagnostics.
 import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
