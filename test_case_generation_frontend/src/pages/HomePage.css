@@ -1,0 +1,391 @@
+:root {
+  --login-gradient-a: rgb(3, 78, 161);
+  --login-gradient-b: rgb(197, 22, 140);
+
+  --ocean-primary: #2563eb;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg: #f9fafb;
+}
+
+.homePage {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.homeHeader {
+  background: linear-gradient(90deg, var(--login-gradient-a), var(--login-gradient-b));
+  padding: 18px 20px;
+}
+
+.homeHeaderInner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.homeToolName {
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  font-size: 16px;
+  line-height: 1.1;
+  user-select: none;
+}
+
+.homeUserMenu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.homeUserButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-radius: 999px;
+  height: 40px;
+  padding: 0 12px 0 10px;
+  cursor: pointer;
+  transition: transform 120ms ease, background 160ms ease, box-shadow 160ms ease;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+}
+
+.homeUserButton:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.homeUserIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.homeUserText {
+  font-size: 14px;
+  font-weight: 700;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeUserChevron {
+  opacity: 0.9;
+}
+
+.homeDropdown {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  width: 190px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.homeDropdownItem {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 12px 12px;
+  cursor: pointer;
+  font-weight: 650;
+  color: #111827;
+  transition: background 120ms ease;
+}
+
+.homeDropdownItem:hover {
+  background: #f3f4f6;
+}
+
+.homeDropdownItem.danger {
+  color: #b91c1c;
+}
+
+.homeDropdownDivider {
+  height: 1px;
+  background: var(--border);
+}
+
+/* Content */
+.homeContent {
+  flex: 1;
+  display: grid;
+  place-items: start center;
+  padding: 28px 16px 48px;
+}
+
+.homeCard {
+  width: 100%;
+  max-width: 860px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  padding: 22px;
+  text-align: left;
+}
+
+.homeTitle {
+  margin: 0 0 14px;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+/* Type selector */
+.homeTypeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.homeTypeLabel {
+  font-size: 13px;
+  font-weight: 750;
+  color: #374151;
+}
+
+.homeTypeSegment {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.homeTypeOption {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 12px;
+  cursor: pointer;
+  font-weight: 750;
+  font-size: 13px;
+  color: #374151;
+  user-select: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.homeTypeOption input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.homeTypeOption.active {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+}
+
+/* Drop zone */
+.homeDropZone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #fbfdff;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  cursor: pointer;
+  outline: none;
+}
+
+.homeDropZone:hover {
+  border-color: rgba(37, 99, 235, 0.55);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+}
+
+.homeDropZone.dragging {
+  border-color: rgba(37, 99, 235, 0.9);
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.homeDropInner {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "icon button"
+    "text button"
+    "meta button";
+  column-gap: 14px;
+  row-gap: 10px;
+  align-items: center;
+}
+
+.homeDropIcon {
+  grid-area: icon;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  font-weight: 900;
+  user-select: none;
+}
+
+.homeDropText {
+  grid-area: text;
+}
+
+.homeDropPrimary {
+  font-weight: 800;
+  font-size: 14px;
+  color: #111827;
+}
+
+.homeDropSecondary {
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.homeDropMeta {
+  grid-area: meta;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.homeHint {
+  display: inline-block;
+  padding: 6px 10px;
+  background: #f3f4f6;
+  border-radius: 999px;
+}
+
+.homePickButton {
+  grid-area: button;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 14px;
+  background: var(--ocean-primary);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease, box-shadow 160ms ease;
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.18);
+}
+
+.homePickButton:hover {
+  transform: translateY(-1px);
+}
+
+.homeHiddenInput {
+  display: none;
+}
+
+.homeFilePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  color: #1d4ed8;
+}
+
+.homeFileName {
+  max-width: 520px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 750;
+}
+
+.homeClearFile {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  background: rgba(29, 78, 216, 0.14);
+  color: #1d4ed8;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.homeExtractButton {
+  margin-top: 16px;
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: var(--ocean-primary);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease, box-shadow 160ms ease;
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.18);
+}
+
+.homeExtractButton:hover {
+  transform: translateY(-1px);
+}
+
+.homeExtractButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .homeHeaderInner {
+    align-items: flex-start;
+  }
+
+  .homeUserText {
+    max-width: 92px;
+  }
+
+  .homeCard {
+    padding: 16px;
+  }
+
+  .homeTitle {
+    font-size: 20px;
+  }
+
+  .homeDropInner {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "icon"
+      "text"
+      "meta"
+      "button";
+  }
+
+  .homePickButton {
+    width: 100%;
+  }
+
+  .homeFileName {
+    max-width: 240px;
+  }
+}

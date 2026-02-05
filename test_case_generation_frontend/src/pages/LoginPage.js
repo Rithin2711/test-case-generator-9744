@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 import { validateCredentials } from '../utils/loginJsonStorage';
 
@@ -11,6 +11,8 @@ import { validateCredentials } from '../utils/loginJsonStorage';
 // PUBLIC_INTERFACE
 function LoginPage() {
   /** This is a public component. */
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -26,7 +28,9 @@ function LoginPage() {
 
     const result = validateCredentials(email, password);
     if (result.ok) {
-      setStatus({ type: 'success', message: 'Successful login.' });
+      // Persist minimal identity for Home header display (not secure auth; UI scaffold only).
+      window.localStorage.setItem('auth.email', String(email || '').trim().toLowerCase());
+      navigate('/home', { replace: true });
     } else {
       setStatus({ type: 'error', message: result.reason });
     }
