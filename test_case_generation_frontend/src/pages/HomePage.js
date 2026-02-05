@@ -242,6 +242,14 @@ function HomePage() {
     try {
       const url = safeJoinUrl(apiBaseUrl, '/extract');
 
+      // eslint-disable-next-line no-console
+      console.debug('[extract] about to send request', {
+        url,
+        apiBaseUrl,
+        fileType: selectedType,
+        file: file ? { name: file.name, size: file.size, type: file.type } : null,
+      });
+
       const formData = new FormData();
       // Use "file" as the field name (most common backend convention).
       // If backend expects a different key, adjust here.
@@ -252,6 +260,18 @@ function HomePage() {
 
       res = await fetch(url, { method: 'POST', body: formData });
 
+      // eslint-disable-next-line no-console
+      console.debug('[extract] fetch resolved (response received)', {
+        status: res.status,
+        ok: res.ok,
+        headers: {
+          'content-type': res.headers.get('content-type'),
+          'content-length': res.headers.get('content-length'),
+          'x-request-id': res.headers.get('x-request-id'),
+          'x-correlation-id': res.headers.get('x-correlation-id'),
+        },
+      });
+
       const contentType = res.headers.get('content-type') || '';
 
       // Prefer reading text first so we can log a snippet even when JSON parsing fails.
@@ -261,6 +281,12 @@ function HomePage() {
       if (isProbablyJsonResponse(contentType)) {
         try {
           parsedPayload = rawText ? JSON.parse(rawText) : null;
+
+          // eslint-disable-next-line no-console
+          console.debug('[extract] parsing succeeded', {
+            parsedAs: 'json',
+            extractedLength: tryExtractTextFromJson(parsedPayload).length,
+          });
         } catch (jsonErr) {
           const diag = buildExtractDiagnostics({
             url,
@@ -271,10 +297,30 @@ function HomePage() {
           });
           // eslint-disable-next-line no-console
           console.error('[extract] JSON parse failed; returning raw text instead', diag);
+
+          // eslint-disable-next-line no-console
+          console.error('[extract] JSON parse error details', {
+            name: jsonErr?.name,
+            message: jsonErr?.message,
+            responseSnippet: responseBodySnippet,
+          });
+
           parsedPayload = rawText;
+
+          // eslint-disable-next-line no-console
+          console.debug('[extract] parsing succeeded', {
+            parsedAs: 'text (fallback after JSON parse failure)',
+            extractedLength: tryExtractTextFromJson(parsedPayload).length,
+          });
         }
       } else {
         parsedPayload = rawText;
+
+        // eslint-disable-next-line no-console
+        console.debug('[extract] parsing succeeded', {
+          parsedAs: 'text',
+          extractedLength: tryExtractTextFromJson(parsedPayload).length,
+        });
       }
 
       if (!res.ok) {
@@ -290,6 +336,13 @@ function HomePage() {
         // eslint-disable-next-line no-console
         console.error('[extract] backend returned error', diag);
 
+        // eslint-disable-next-line no-console
+        console.error('[extract] error details', {
+          name: 'BackendError',
+          message: msg || `HTTP ${res.status}`,
+          responseSnippet: responseBodySnippet,
+        });
+
         throw new Error(msg || `Extraction failed with status ${res.status}`);
       }
 
@@ -297,6 +350,7 @@ function HomePage() {
       console.debug('[extract] success', {
         status: res.status,
         contentType,
+        extractedLength: tryExtractTextFromJson(parsedPayload).length,
       });
 
       setRawResponse(parsedPayload);
@@ -304,6 +358,12 @@ function HomePage() {
     } catch (err) {
       // Fetch throws TypeError("Failed to fetch") on network errors and CORS blocks.
       const message = String(err?.message || '');
+
+      // eslint-disable-next-line no-console
+      console.error('[extract] caught error', {
+        name: err?.name,
+        message,
+      });
 
       // If we never got a response object, it is almost certainly network/CORS/mixed-content.
       if (!res) {
@@ -343,6 +403,13 @@ function HomePage() {
 
         // eslint-disable-next-line no-console
         console.error('[extract] failed after receiving response', diag);
+
+        // eslint-disable-next-line no-console
+        console.error('[extract] error details (post-response)', {
+          name: err?.name,
+          message: err?.message,
+          responseSnippet: responseBodySnippet,
+        });
 
         setExtractError(message || 'Extraction failed.');
       }
