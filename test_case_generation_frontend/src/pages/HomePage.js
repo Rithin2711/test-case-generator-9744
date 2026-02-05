@@ -96,6 +96,7 @@ function HomePage() {
 
   const apiBaseUrl = useMemo(() => {
     // Prefer explicit API_BASE as requested; fall back to BACKEND_URL for compatibility with prior setups.
+    // Note: CRA exposes only REACT_APP_* env vars at build time.
     return process.env.REACT_APP_API_BASE || process.env.REACT_APP_BACKEND_URL || '';
   }, []);
 
