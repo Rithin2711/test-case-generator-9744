@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import './LoginPage.css';
+import { validateCredentials } from '../utils/loginJsonStorage';
 
 /**
- * Login page UI scaffold (no backend integration yet).
- * Contains: gradient header with logos, a centered sign-in card, email/password inputs,
- * Google sign-in button (stub), and a Sign Up link (stub).
+ * Login page UI.
+ * Now supports localStorage-based validation against key `login.json` as { email: password }.
  */
 
 // PUBLIC_INTERFACE
@@ -13,15 +14,22 @@ function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const [status, setStatus] = useState({ type: 'idle', message: '' });
+
   const isFormValid = useMemo(() => {
     return email.trim().length > 0 && password.length > 0;
   }, [email, password]);
 
   const onSubmit = (e) => {
     e.preventDefault();
-    // UI scaffolding only: no API call yet.
-    // eslint-disable-next-line no-console
-    console.log('Sign in clicked (stub):', { email });
+    setStatus({ type: 'idle', message: '' });
+
+    const result = validateCredentials(email, password);
+    if (result.ok) {
+      setStatus({ type: 'success', message: 'Successful login.' });
+    } else {
+      setStatus({ type: 'error', message: result.reason });
+    }
   };
 
   const onGoogle = () => {
@@ -90,6 +98,18 @@ function LoginPage() {
               Sign in
             </button>
 
+            {status.type === 'success' ? (
+              <div className="signupRow" style={{ color: '#065F46', textAlign: 'left' }} role="status">
+                {status.message}
+              </div>
+            ) : null}
+
+            {status.type === 'error' ? (
+              <div className="signupRow" style={{ color: '#EF4444', textAlign: 'left' }} role="alert">
+                {status.message}
+              </div>
+            ) : null}
+
             <div className="divider" role="separator" aria-label="Or continue with">
               <span>or</span>
             </div>
@@ -103,18 +123,9 @@ function LoginPage() {
 
             <div className="signupRow">
               <span className="signupText">Don&apos;t have an account?</span>{' '}
-              <a
-                className="signupLink"
-                href="/signup"
-                onClick={(e) => {
-                  // Scaffold only: prevent navigation unless a router is added later.
-                  e.preventDefault();
-                  // eslint-disable-next-line no-console
-                  console.log('Navigate to /signup (stub)');
-                }}
-              >
+              <Link className="signupLink" to="/signup">
                 Sign Up
-              </a>
+              </Link>
             </div>
           </form>
         </div>
