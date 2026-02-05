@@ -15,11 +15,57 @@ function getEmailPrefix(email) {
   return value.slice(0, at);
 }
 
+function safeJoinUrl(base, path) {
+  const b = String(base || '').trim();
+  const p = String(path || '').trim();
+  if (!b) return p;
+  if (!p) return b;
+  if (b.endsWith('/') && p.startsWith('/')) return `${b}${p.slice(1)}`;
+  if (!b.endsWith('/') && !p.startsWith('/')) return `${b}/${p}`;
+  return `${b}${p}`;
+}
+
+function isProbablyJsonResponse(contentType) {
+  return String(contentType || '').toLowerCase().includes('application/json');
+}
+
+function tryExtractTextFromJson(json) {
+  if (json == null) return '';
+  if (typeof json === 'string') return json;
+
+  if (typeof json === 'object') {
+    // Common shapes: { text }, { extracted_text }, { content }, { data: { text } }, etc.
+    const candidates = [
+      json.text,
+      json.extracted_text,
+      json.extractedText,
+      json.content,
+      json.result,
+      json.output,
+      json.data?.text,
+      json.data?.content,
+      json.data?.result,
+    ].filter((v) => typeof v === 'string' && v.trim().length > 0);
+
+    if (candidates.length > 0) return candidates[0];
+
+    // As a fallback, display the JSON itself.
+    try {
+      return JSON.stringify(json, null, 2);
+    } catch {
+      return String(json);
+    }
+  }
+
+  return String(json);
+}
+
 /**
  * Home page with top bar and upload flow.
  * - Top bar matches login/signup gradient.
  * - User menu shows icon + email prefix and dropdown (Profile/Settings).
  * - Main card: file type selector (PDF/Image/.txt) + drag/drop + picker upload + Extract button.
+ * - After extraction: show extracted contents in a scrollable container and a "Generate scenario" button.
  */
 
 // PUBLIC_INTERFACE
@@ -34,6 +80,11 @@ function HomePage() {
 
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractError, setExtractError] = useState('');
+  const [extractedText, setExtractedText] = useState('');
+  const [rawResponse, setRawResponse] = useState(null);
+
   const email = useMemo(() => window.localStorage.getItem('auth.email') || '', []);
   const emailPrefix = useMemo(() => getEmailPrefix(email), [email]);
 
@@ -41,6 +92,11 @@ function HomePage() {
     const ft = FILE_TYPES.find((t) => t.key === selectedType);
     return ft ? ft.accept : '*/*';
   }, [selectedType]);
+
+  const apiBaseUrl = useMemo(() => {
+    // Prefer explicit BACKEND_URL; fall back to API_BASE if that's how env is configured.
+    return process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_BASE || '';
+  }, []);
 
   useEffect(() => {
     // Minimal "auth guard": if no stored email, return to login.
@@ -64,6 +120,11 @@ function HomePage() {
     const f = files && files.length ? files[0] : null;
     if (!f) return;
     setFile(f);
+
+    // Clear previous output when choosing a new file
+    setExtractError('');
+    setExtractedText('');
+    setRawResponse(null);
   };
 
   const onInputChange = (e) => onFilesSelected(e.target.files);
@@ -90,10 +151,67 @@ function HomePage() {
     setIsDragging(false);
   };
 
-  const onExtract = () => {
-    // UI-only scaffold. Hook backend integration later.
+  const validateBeforeExtract = () => {
+    if (!file) return 'Please choose a file first.';
+    if (!apiBaseUrl) {
+      return 'Backend URL is not configured. Set REACT_APP_BACKEND_URL (or REACT_APP_API_BASE) in the environment.';
+    }
+    return '';
+  };
+
+  const onExtract = async () => {
+    const validationError = validateBeforeExtract();
+    if (validationError) {
+      setExtractError(validationError);
+      return;
+    }
+
+    setIsExtracting(true);
+    setExtractError('');
+    setExtractedText('');
+    setRawResponse(null);
+
+    try {
+      const url = safeJoinUrl(apiBaseUrl, '/extract');
+
+      const formData = new FormData();
+      // Use "file" as the field name (most common backend convention).
+      // If backend expects a different key, adjust here.
+      formData.append('file', file);
+
+      // Include selectedType as optional metadata (backend may ignore it).
+      formData.append('file_type', selectedType);
+
+      const res = await fetch(url, { method: 'POST', body: formData });
+
+      const contentType = res.headers.get('content-type') || '';
+      let parsedPayload = null;
+
+      if (isProbablyJsonResponse(contentType)) {
+        parsedPayload = await res.json();
+      } else {
+        // Some backends return plain text
+        parsedPayload = await res.text();
+      }
+
+      if (!res.ok) {
+        const msg = tryExtractTextFromJson(parsedPayload);
+        throw new Error(msg || `Extraction failed with status ${res.status}`);
+      }
+
+      setRawResponse(parsedPayload);
+      setExtractedText(tryExtractTextFromJson(parsedPayload));
+    } catch (err) {
+      setExtractError(err?.message || 'Extraction failed.');
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const onGenerateScenario = () => {
+    // Placeholder hook for next step.
     // eslint-disable-next-line no-console
-    console.log('Extract contents clicked', { selectedType, file });
+    console.log('Generate scenario clicked', { extractedText, rawResponse });
   };
 
   const onLogout = () => {
@@ -194,6 +312,9 @@ function HomePage() {
                     onChange={() => {
                       setSelectedType(t.key);
                       setFile(null); // clear selection when switching type
+                      setExtractError('');
+                      setExtractedText('');
+                      setRawResponse(null);
                       if (fileInputRef.current) fileInputRef.current.value = '';
                     }}
                   />
@@ -237,6 +358,9 @@ function HomePage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         setFile(null);
+                        setExtractError('');
+                        setExtractedText('');
+                        setRawResponse(null);
                         if (fileInputRef.current) fileInputRef.current.value = '';
                       }}
                       aria-label="Remove selected file"
@@ -263,9 +387,32 @@ function HomePage() {
             </div>
           </div>
 
-          <button className="homeExtractButton" type="button" disabled={!file} onClick={onExtract}>
-            Extract contents
+          <button className="homeExtractButton" type="button" disabled={!file || isExtracting} onClick={onExtract}>
+            {isExtracting ? 'Extracting…' : 'Extract contents'}
           </button>
+
+          {extractError ? (
+            <div className="homeStatusMessage homeStatusError" role="alert">
+              {extractError}
+            </div>
+          ) : null}
+
+          {extractedText ? (
+            <div className="homeResults" role="region" aria-label="Extracted contents">
+              <div className="homeResultsHeader">
+                <div className="homeResultsTitle">Extracted contents</div>
+                <div className="homeResultsMeta">
+                  {file?.name ? <span className="homeResultsPill">{file.name}</span> : null}
+                </div>
+              </div>
+
+              <pre className="homeResultsBody">{extractedText}</pre>
+
+              <button type="button" className="homeScenarioButton" onClick={onGenerateScenario}>
+                Generate scenario
+              </button>
+            </div>
+          ) : null}
         </div>
       </section>
     </div>

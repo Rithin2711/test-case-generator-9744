@@ -354,6 +354,100 @@
   box-shadow: none;
 }
 
+.homeStatusMessage {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.homeStatusError {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.homeResults {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.homeResultsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 12px;
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.08), rgba(255, 255, 255, 0));
+  border-bottom: 1px solid var(--border);
+}
+
+.homeResultsTitle {
+  font-size: 13px;
+  font-weight: 850;
+  color: #111827;
+}
+
+.homeResultsMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.homeResultsPill {
+  display: inline-flex;
+  align-items: center;
+  max-width: 320px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeResultsBody {
+  margin: 0;
+  padding: 12px;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #111827;
+  background: #fbfdff;
+}
+
+.homeScenarioButton {
+  width: calc(100% - 24px);
+  margin: 12px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #f59e0b; /* secondary accent from style guide */
+  color: #111827;
+  font-weight: 900;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease, box-shadow 160ms ease;
+  box-shadow: 0 10px 18px rgba(245, 158, 11, 0.22);
+}
+
+.homeScenarioButton:hover {
+  transform: translateY(-1px);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .homeHeaderInner {
@@ -387,5 +481,9 @@
 
   .homeFileName {
     max-width: 240px;
+  }
+
+  .homeResultsPill {
+    max-width: 170px;
   }
 }
