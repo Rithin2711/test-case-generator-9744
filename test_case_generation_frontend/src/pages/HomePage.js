@@ -96,8 +96,10 @@ function HomePage() {
 
   const apiBaseUrl = useMemo(() => {
     // Prefer explicit API_BASE as requested; fall back to BACKEND_URL for compatibility with prior setups.
+    // If env variables are missing/misconfigured, use a hardcoded fallback so the app still works.
     // Note: CRA exposes only REACT_APP_* env vars at build time.
-    return process.env.REACT_APP_API_BASE || process.env.REACT_APP_BACKEND_URL || '';
+    const hardcodedFallback = 'https://vscode-internal-10067-beta.beta01.cloud.kavia.ai:3001';
+    return process.env.REACT_APP_API_BASE || process.env.REACT_APP_BACKEND_URL || hardcodedFallback;
   }, []);
 
   const buildExtractDiagnostics = ({ url, fileToSend, response, responseBodySnippet, error }) => {
