@@ -94,9 +94,65 @@ function HomePage() {
   }, [selectedType]);
 
   const apiBaseUrl = useMemo(() => {
-    // Prefer explicit BACKEND_URL; fall back to API_BASE if that's how env is configured.
-    return process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_BASE || '';
+    // Prefer explicit API_BASE as requested; fall back to BACKEND_URL for compatibility with prior setups.
+    return process.env.REACT_APP_API_BASE || process.env.REACT_APP_BACKEND_URL || '';
   }, []);
+
+  const buildExtractDiagnostics = ({ url, fileToSend, response, responseBodySnippet, error }) => {
+    /**
+     * Build a compact diagnostic payload to help debug “Failed to fetch” issues:
+     * - Wrong URL / missing env var
+     * - CORS blocked
+     * - Mixed-content (http vs https)
+     * - Network/DNS failure
+     * - Backend returned non-2xx with a helpful error body
+     */
+    const safeHeaders = {};
+    try {
+      // Browsers may restrict access to some headers; guard accordingly.
+      response?.headers?.forEach?.((value, key) => {
+        safeHeaders[key] = value;
+      });
+    } catch {
+      // ignore
+    }
+
+    return {
+      request: {
+        url,
+        method: 'POST',
+        file: fileToSend
+          ? { name: fileToSend.name, type: fileToSend.type, size: fileToSend.size }
+          : null,
+        file_type: selectedType,
+        apiBaseUrl,
+      },
+      response: response
+        ? {
+            ok: response.ok,
+            status: response.status,
+            statusText: response.statusText,
+            type: response.type, // e.g. 'cors', 'basic', 'opaque'
+            redirected: response.redirected,
+            url: response.url,
+            headers: safeHeaders,
+          }
+        : null,
+      responseBodySnippet: responseBodySnippet || '',
+      error: error
+        ? {
+            name: error.name,
+            message: error.message,
+            // stack is often present in dev builds
+            stack: error.stack,
+          }
+        : null,
+      runtime: {
+        locationOrigin: window.location?.origin,
+        userAgent: navigator.userAgent,
+      },
+    };
+  };
 
   useEffect(() => {
     // Minimal "auth guard": if no stored email, return to login.
@@ -171,6 +227,16 @@ function HomePage() {
     setExtractedText('');
     setRawResponse(null);
 
+    // eslint-disable-next-line no-console
+    console.debug('[extract] starting', {
+      apiBaseUrl,
+      selectedType,
+      file: file ? { name: file.name, type: file.type, size: file.size } : null,
+    });
+
+    let res = null;
+    let parsedPayload = null;
+
     try {
       const url = safeJoinUrl(apiBaseUrl, '/extract');
 
@@ -182,27 +248,102 @@ function HomePage() {
       // Include selectedType as optional metadata (backend may ignore it).
       formData.append('file_type', selectedType);
 
-      const res = await fetch(url, { method: 'POST', body: formData });
+      res = await fetch(url, { method: 'POST', body: formData });
 
       const contentType = res.headers.get('content-type') || '';
-      let parsedPayload = null;
+
+      // Prefer reading text first so we can log a snippet even when JSON parsing fails.
+      const rawText = await res.text();
+      const responseBodySnippet = rawText.slice(0, 1200);
 
       if (isProbablyJsonResponse(contentType)) {
-        parsedPayload = await res.json();
+        try {
+          parsedPayload = rawText ? JSON.parse(rawText) : null;
+        } catch (jsonErr) {
+          const diag = buildExtractDiagnostics({
+            url,
+            fileToSend: file,
+            response: res,
+            responseBodySnippet,
+            error: jsonErr,
+          });
+          // eslint-disable-next-line no-console
+          console.error('[extract] JSON parse failed; returning raw text instead', diag);
+          parsedPayload = rawText;
+        }
       } else {
-        // Some backends return plain text
-        parsedPayload = await res.text();
+        parsedPayload = rawText;
       }
 
       if (!res.ok) {
         const msg = tryExtractTextFromJson(parsedPayload);
+
+        const diag = buildExtractDiagnostics({
+          url,
+          fileToSend: file,
+          response: res,
+          responseBodySnippet,
+          error: new Error(msg || `HTTP ${res.status}`),
+        });
+        // eslint-disable-next-line no-console
+        console.error('[extract] backend returned error', diag);
+
         throw new Error(msg || `Extraction failed with status ${res.status}`);
       }
+
+      // eslint-disable-next-line no-console
+      console.debug('[extract] success', {
+        status: res.status,
+        contentType,
+      });
 
       setRawResponse(parsedPayload);
       setExtractedText(tryExtractTextFromJson(parsedPayload));
     } catch (err) {
-      setExtractError(err?.message || 'Extraction failed.');
+      // Fetch throws TypeError("Failed to fetch") on network errors and CORS blocks.
+      const message = String(err?.message || '');
+
+      // If we never got a response object, it is almost certainly network/CORS/mixed-content.
+      if (!res) {
+        const url = safeJoinUrl(apiBaseUrl, '/extract');
+        const diag = buildExtractDiagnostics({
+          url,
+          fileToSend: file,
+          response: null,
+          responseBodySnippet: '',
+          error: err,
+        });
+
+        // eslint-disable-next-line no-console
+        console.error('[extract] request failed before receiving a response (network/CORS?)', diag);
+
+        const likelyCorsHint =
+          message.toLowerCase().includes('failed to fetch') || message.toLowerCase().includes('networkerror')
+            ? 'Possible causes: CORS blocked, backend unreachable, DNS failure, or mixed-content (http vs https). Check browser devtools Network/Console.'
+            : '';
+
+        setExtractError(
+          [message || 'Extraction failed.', likelyCorsHint, `Request URL: ${url}`].filter(Boolean).join(' ')
+        );
+      } else {
+        // We got a response but still ended up here due to parsing or thrown error.
+        const url = safeJoinUrl(apiBaseUrl, '/extract');
+        const responseBodySnippet =
+          typeof parsedPayload === 'string' ? parsedPayload.slice(0, 1200) : tryExtractTextFromJson(parsedPayload);
+
+        const diag = buildExtractDiagnostics({
+          url,
+          fileToSend: file,
+          response: res,
+          responseBodySnippet,
+          error: err,
+        });
+
+        // eslint-disable-next-line no-console
+        console.error('[extract] failed after receiving response', diag);
+
+        setExtractError(message || 'Extraction failed.');
+      }
     } finally {
       setIsExtracting(false);
     }
